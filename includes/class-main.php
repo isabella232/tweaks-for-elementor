@@ -72,7 +72,7 @@ class Main {
 			 *
 			 * @param bool print_google_fonts Whether to enqueue Google fonts. Default is true.
 			 *
-			 * @since 1.0.1
+			 * @since 1.0.2.1
 			 */
 			add_filter( 'elementor/frontend/print_google_fonts', '__return_false' );
 		}
@@ -93,6 +93,7 @@ class Main {
 	 */
 	public function tweak_enqueue_scripts() {
 		$wp_block = $this->get_option( 'wp_block' );
+		$hello_theme  = $this->get_option( 'hello_theme' );
 
 		if ( $wp_block ) {
 			/**
@@ -112,7 +113,7 @@ class Main {
 			 *
 			 * Fired by `wp_enqueue_scripts` action.
 			 *
-			 * @since 1.0.1
+			 * @since 1.0.2.1
 			 * @access public
 			 */
 			$elementor_icons = $this->get_option( 'elementor_icons' );
@@ -124,6 +125,60 @@ class Main {
 			if ( $fa_icons ) {
 				wp_deregister_style( 'font-awesome' );
 			}
+		}
+
+		if ( $hello_theme ) {
+			/**
+			 * Add Tweaks CSS styles to a registered stylesheet if theme style disabled.
+			 *
+			 * @since 1.0.2.1
+			 * @access public
+			 */
+			wp_add_inline_style( 'elementor-frontend', 'body{margin:0}' );
+		}
+
+		$api_key    = $this->get_option( 'intl_ip_info_api_key' );
+		$country_id = $this->get_option( 'intl_custom_country_id' );
+
+		$data       = [];
+		if ( ! empty( $api_key ) or ! empty( $country_id ) ) {
+			/**
+			 * Register styles if !empty options intl_ip_info_api_key or intl_custom_country_id
+			 *
+			 * @since 1.0.2.1
+			 * @access public
+			 */
+			wp_enqueue_style(
+				WPBRO_TWEAKS_FOR_ELEMENTOR_SLUG . '-intl-style',
+				WPBRO_TWEAKS_FOR_ELEMENTOR_URL . 'dist/style.css',
+				array(),
+				WPBRO_TWEAKS_FOR_ELEMENTOR_VERSION,
+				'all'
+			);
+			/**
+			 * Register scripts if !empty options intl_ip_info_api_key or intl_custom_country_id
+			 *
+			 * @since 1.0.2.1
+			 * @access public
+			 */
+			wp_enqueue_script(
+				WPBRO_TWEAKS_FOR_ELEMENTOR_SLUG . '-intl-script',
+				WPBRO_TWEAKS_FOR_ELEMENTOR_URL . 'dist/script.js',
+				array(),
+				WPBRO_TWEAKS_FOR_ELEMENTOR_VERSION,
+				true
+			);
+
+			if ( ! empty( $api_key ) ) {
+				$data['apiKey'] = $api_key;
+			}
+			if ( ! empty( $country_id ) ) {
+				$data['customCountryId'] = $country_id;
+			}
+			wp_localize_script(
+				WPBRO_TWEAKS_FOR_ELEMENTOR_SLUG . '-intl-script', 'intlElementorData',
+				$data
+			);
 		}
 	}
 
